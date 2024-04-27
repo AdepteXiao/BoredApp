@@ -1,30 +1,23 @@
 package com.example.test.screens
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,15 +27,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.test.R
-import com.example.test.ui.theme.BarColor
+import com.example.test.data.FavEntity
 import com.example.test.ui.theme.LightColor
 import com.example.test.ui.theme.TextColor
 import com.example.test.ui.theme.WindowsColor
+import com.example.test.models.FavVModel
+import com.example.test.models.ParamVModel
 
-@Preview(showBackground = true)
+//@Preview(showBackground = true)
 @Composable
-fun FavScreen() {
+fun FavScreen(viewModel: FavVModel = viewModel(factory = FavVModel.factory)) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -64,32 +60,21 @@ fun FavScreen() {
 //                .verticalScroll(state = rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { FavCard() }
-            item { FavCard() }
-            item { FavCard() }
-            item { FavCard() }
-            item { FavCard() }
-            item { FavCard() }
-            item { FavCard() }
-            item { FavCard() }
-            item { FavCard() }
-            item { FavCard() }
-            item { FavCard() }
-            item { FavCard() }
-            item { FavCard() }
-            item { FavCard() }
+
+            val itemList = viewModel.getList()
+            for (i in itemList){
+                item { FavCard(i.type, i.participants, i.price, i.activity, viewModel, i) }
+            }
         }
 
 
     }
 }
 
-
 @Composable
-fun FavCard() {
-    val tags = listOf("cheap", "3", "education")
-    val name = "Learn Jetpack Compose and try not to cry "
-    val longText = "This is a long text that exceeds the maximum allowed length"
+fun FavCard(type: String, people: String, price: String, name: String, viewModel: FavVModel, item: FavEntity) {
+    val tags = listOf(type, people, price)
+//    val longText = "This is a long text that exceeds the maximum allowed length"
     val maxLength = 60
     Card(
         colors = CardDefaults.cardColors(containerColor = WindowsColor),
@@ -142,22 +127,20 @@ fun FavCard() {
             }
             Column(
                 modifier = Modifier
-                    .align(Alignment.CenterVertically).width(60.dp)
-//                    .weight(1f)
+                    .align(Alignment.CenterVertically)
+                    .width(60.dp)
+                    .background(LightColor)
+                    .fillMaxHeight()
+                    .clickable { viewModel.deleteItem(item) },
             ) {
-                IconButton(
-                    onClick = { },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(LightColor)
-//                        .width(60.dp)
-//                        .fillMaxHeight()
-//                        .weight(1f)
-//                        .align(Alignment.CenterVertically)
+                Box(
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.icon),
-                        contentDescription = "Геолокация"
+                        modifier = Modifier.align(Alignment.Center),
+
+                        painter = painterResource(id = R.drawable.check),
+                        contentDescription = "Choose"
                     )
                 }
             }

@@ -4,15 +4,15 @@ package com.example.test.screens
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-//import androidx.compose.foundation.layout.FlowRowScopeInstance.align
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenuItem
@@ -32,15 +32,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.test.ui.theme.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import com.example.test.bottom_nav.Route
+import com.example.test.models.FavVModel
+import com.example.test.models.ParamVModel
+import com.example.test.ui.theme.LightColor
+import com.example.test.ui.theme.ScreenColor
+import com.example.test.ui.theme.TextColor
+import com.example.test.ui.theme.WindowsColor
 
 
-@Preview(showBackground = true)
 @Composable
-fun ParamScreen() {
+fun ParamScreen(
+    navHostController: NavHostController,
+    viewModel: ParamVModel = viewModel(factory = ParamVModel.factory)
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -48,7 +57,7 @@ fun ParamScreen() {
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         Text(
-            text = "ЧЕМ ЗАНЯТЬСЯ?",
+            text = "WHAT TO DO?",
             color = TextColor,
             textAlign = TextAlign.Center,
             fontSize = 20.sp,
@@ -65,17 +74,34 @@ fun ParamScreen() {
                     .padding(vertical = 16.dp),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                RowParam()
-                RowParam()
-                RowParam()
+                RowParam("Type", arrayOf("any", "education", "recreational", "social", "diy", "charity", "cooking", "relaxation", "music", "busywork"), viewModel.type, viewModel::setSelectedType)
+                RowParam("People", arrayOf("any", "1", "2", "3 - 4", "5 - 6"), viewModel.people, viewModel::setSelectedPeople)
+                RowParam("Price", arrayOf("any", "free", "cheap", "normal", "expensive"), viewModel.price, viewModel::setSelectedPrice)
             }
+        }
+        Button(
+            onClick = { viewModel.generateIdeas()
+                        navHostController.navigate(Route.IdeaScreen)},
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            colors = ButtonDefaults.buttonColors(containerColor = LightColor),
+            shape = RoundedCornerShape(15.dp),
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 4.dp,
+                pressedElevation = 2.dp,
+
+            )
+        ) {
+            Text("Submit",
+                fontSize = 16.sp,
+                color = TextColor)
         }
     }
 }
 
 
 @Composable
-fun RowParam() {
+fun RowParam(text: String, choices: Array<String>, selected: String,
+             onSelectedChanged: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -83,56 +109,31 @@ fun RowParam() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "Кол-во человек",
+            text,
             modifier = Modifier
-                .padding(start = 24.dp, end = 24.dp).weight(1f)
+                .padding(start = 24.dp, end = 24.dp)
+                .weight(1f)
         )
 
-        Demo_ExposedDropdownMenuBox()
+        Demo_ExposedDropdownMenuBox(choices, selected, onSelectedChanged)
 
     }
 }
 
-//@SuppressLint("SuspiciousIndentation")
-//@Composable
-//fun DropdownMenuExample() {
-//    var expanded by remember { mutableStateOf(false) }
-//    var selectedOption by remember { mutableStateOf("Option 1") }
-//    val options = listOf("Option 1", "Option 2", "Option 3")
-//        TextButton(modifier = Modifier
-//            .fillMaxWidth(),
-////            .padding(16.dp),
-//            onClick = { expanded = !expanded }) {
-//            Text(text = "Select option")
-//        }
-//        DropdownMenu(
-//            expanded = expanded,
-//            onDismissRequest = { expanded = false },
-////            modifier = Modifier.width(IntrinsicSize.Max)
-//        ) {
-//            options.forEach { option ->
-//                DropdownMenuItem(
-//                    text = { Text(text = option) },
-//                    onClick = {
-//                        selectedOption = option
-//                        expanded = false
-//                    })
-//            }
-//        }
-//    }
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Demo_ExposedDropdownMenuBox() {
-    val context = LocalContext.current
-    val choice = arrayOf("education", "education", "education", "education", "education")
+fun Demo_ExposedDropdownMenuBox(choices: Array<String>, selected: String,
+                                onSelectedChanged: (String) -> Unit) {
+//    val context = LocalContext.current
     var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember { mutableStateOf(choice[0]) }
+    var selectedText by remember { mutableStateOf(selected) }
 
 
     ExposedDropdownMenuBox(
-            modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp),
+        modifier = Modifier.padding(vertical = 8.dp, horizontal = 24.dp),
         expanded = expanded,
         onExpandedChange = {
             expanded = !expanded
@@ -161,14 +162,13 @@ fun Demo_ExposedDropdownMenuBox() {
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
-            choice.forEach { item ->
+            choices.forEach { item ->
                 DropdownMenuItem(
-
                     text = { Text(text = item) },
                     onClick = {
                         selectedText = item
+                        onSelectedChanged(item)
                         expanded = false
-                        Toast.makeText(context, item, Toast.LENGTH_SHORT).show()
                     }
                 )
             }

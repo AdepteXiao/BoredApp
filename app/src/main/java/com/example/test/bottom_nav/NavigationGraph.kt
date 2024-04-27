@@ -7,6 +7,14 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.test.models.ParamVModel
+import com.example.test.screens.FavScreen
+import com.example.test.screens.HistoryScreen
+import com.example.test.screens.IdeasScreen
+import com.example.test.screens.MapScreen
+import com.example.test.models.FavVModel
+import com.example.test.screens.ParamScreen
+
 
 @Composable
 fun NavGraph(
@@ -14,19 +22,22 @@ fun NavGraph(
     padding: PaddingValues
 ) {
     NavHost(navController = navHostController,
-            startDestination = "screen_1",
+            startDestination = Route.GenerateScreen,
             modifier = Modifier.padding(padding)){
-        composable("screen_1"){
-            Screen1()
+        composable(Route.GenerateScreen){
+            ParamScreen(navHostController)
         }
-        composable("screen_2"){
-            Screen2()
+        composable(Route.IdeaScreen){
+            IdeasScreen()
         }
-        composable("screen_3"){
-            Screen3()
+        composable(Route.FavoriteScreen){
+            FavScreen()
         }
-        composable("screen_4"){
-            Screen4()
+        composable(Route.HistoryScreen){
+            HistoryScreen(navHostController)
+        }
+        composable(Route.MapScreen){
+            MapScreen(navHostController)
         }
     }
 }
