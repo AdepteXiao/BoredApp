@@ -1,0 +1,1 @@
+Сборка (в папке проекта): .\gradlew assembleDebug
