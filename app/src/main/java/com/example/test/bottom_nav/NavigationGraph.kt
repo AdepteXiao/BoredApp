@@ -13,31 +13,34 @@ import com.example.test.screens.HistoryScreen
 import com.example.test.screens.IdeasScreen
 import com.example.test.screens.MapScreen
 import com.example.test.models.FavVModel
+import com.example.test.models.HistoryVModel
 import com.example.test.screens.ParamScreen
 
 
 @Composable
 fun NavGraph(
     navHostController: NavHostController,
-    padding: PaddingValues
+    padding: PaddingValues,
+    paramVm: ParamVModel,
+    hisVm: HistoryVModel
 ) {
     NavHost(navController = navHostController,
-            startDestination = Route.GenerateScreen,
+            startDestination = Route.HistoryScreen,
             modifier = Modifier.padding(padding)){
         composable(Route.GenerateScreen){
-            ParamScreen(navHostController)
+            ParamScreen(paramVm)
         }
         composable(Route.IdeaScreen){
-            IdeasScreen()
+            IdeasScreen(paramVm)
         }
         composable(Route.FavoriteScreen){
             FavScreen()
         }
         composable(Route.HistoryScreen){
-            HistoryScreen(navHostController)
+            HistoryScreen(hisVm, navHostController)
         }
         composable(Route.MapScreen){
-            MapScreen(navHostController)
+            MapScreen(hisVm, navHostController)
         }
     }
 }

@@ -17,18 +17,19 @@ import kotlinx.coroutines.launch
 class HistoryVModel(private val database: Db)   : ViewModel() {
     var activity = "any"
     var type = "any"
-    var participants = "any"
-    var price = "any"
-    var note = "How did it go?"
     var location: String? = null
+    var historyList: List<HistoryEntity> by mutableStateOf(mutableListOf())
 
-
-    private var historyList: List<HistoryEntity> by mutableStateOf(mutableListOf())
-    fun getList(): List<HistoryEntity> {
+    fun getList() {
         viewModelScope.launch {
             val lst = database.historyDao.getAllHistory().firstOrNull() ?: emptyList()
             historyList = lst.map { it }}
-        return historyList
+    }
+
+    fun updateItem(item: HistoryEntity) {
+        viewModelScope.launch {
+            database.historyDao.update(item)
+        }
     }
 
     companion object{
@@ -42,5 +43,9 @@ class HistoryVModel(private val database: Db)   : ViewModel() {
                 return HistoryVModel(database) as T
             }
         }
+    }
+
+    init {
+        getList()
     }
 }

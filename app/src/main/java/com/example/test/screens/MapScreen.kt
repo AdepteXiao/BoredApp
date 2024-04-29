@@ -21,11 +21,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.test.R
 import com.example.test.bottom_nav.Route
+import com.example.test.models.HistoryVModel
 import com.example.test.ui.theme.LightColor
 import com.example.test.ui.theme.TextColor
 
 @Composable
 fun MapScreen(
+    vm: HistoryVModel,
     navHostController: NavHostController
 ) {
     Column(

@@ -11,6 +11,7 @@ import com.example.test.App
 import com.example.test.data.Db
 import com.example.test.data.FavEntity
 import com.example.test.data.HistoryEntity
+import com.example.test.data.toHistoryEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapConcat
@@ -21,31 +22,38 @@ import kotlinx.coroutines.launch
 
 class FavVModel(private val database: Db) : ViewModel() {
 
-    private var favList: List<FavEntity> by mutableStateOf(mutableListOf())
-    fun getList(): List<FavEntity> {
+    var favList: List<FavEntity> by mutableStateOf(mutableListOf())
+    private fun getList() {
         viewModelScope.launch {
             val lst = database.favDao.getAllFav().firstOrNull() ?: emptyList()
-            favList = lst.map { it }}
-        return favList
+            favList = lst.map { it }
+        }
     }
 
-    fun deleteItem(item: FavEntity){
+    fun deleteItem(item: FavEntity) {
         viewModelScope.launch {
-        database.favDao.delete(item)
-        val historyItem = HistoryEntity(null, item.activity, item.type, item.participants, item.price)
-        database.historyDao.insert(historyItem)
-    }}
+            database.favDao.delete(item)
+            val historyItem = item.toHistoryEntity()
+            database.historyDao.insert(historyItem)
+            getList()
+        }
+    }
 
-    companion object{
-        val factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory{
+    companion object {
+        val factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(
                 modelClass: Class<T>,
                 extras: CreationExtras
             ): T {
-                val database = (checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as App).database
+                val database =
+                    (checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as App).database
                 return FavVModel(database) as T
             }
         }
+    }
+
+    init {
+        getList()
     }
 }

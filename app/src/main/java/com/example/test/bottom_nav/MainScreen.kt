@@ -14,7 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
+import com.example.test.models.FavVModel
+import com.example.test.models.HistoryVModel
+import com.example.test.models.ParamVModel
+import com.example.test.models.VmFactory
 import com.example.test.ui.theme.BarColor
 import com.example.test.ui.theme.ScreenColor
 
@@ -24,6 +29,10 @@ import com.example.test.ui.theme.ScreenColor
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
+
+    val paramVModel: ParamVModel = viewModel(key = "param", factory = VmFactory(navController, ParamVModel::class.java))
+//    val favVModel: FavVModel = viewModel(factory = FavVModel.factory)
+    val historyVModel: HistoryVModel = viewModel(factory = HistoryVModel.factory)
 
     Scaffold(
         containerColor = ScreenColor,
@@ -49,6 +58,11 @@ fun MainScreen() {
             BottomNavigation(navController = navController)
         }
     ) {
-        NavGraph(navHostController = navController, padding = it)
+        NavGraph(
+            navHostController = navController,
+            padding = it,
+            paramVm = paramVModel,
+            hisVm = historyVModel
+        )
     }
 }

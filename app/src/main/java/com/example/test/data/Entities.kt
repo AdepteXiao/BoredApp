@@ -23,6 +23,12 @@ data class HistoryEntity(
     val type: String,
     val participants: String,
     val price: String,
-    val note: String = "How did it go?",
+    var note: String? = null,
     val location: String? = null
 )
+
+fun FavEntity.toHistoryEntity(): HistoryEntity {
+    return HistoryEntity(null, activity, type, participants, price)
+}
+
+

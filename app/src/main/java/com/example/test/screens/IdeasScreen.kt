@@ -1,6 +1,7 @@
 package com.example.test.screens
 
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,28 +16,28 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.test.R
-import com.example.test.data.Db
-import com.example.test.models.HistoryVModel
 import com.example.test.models.ParamVModel
 import com.example.test.ui.theme.LightColor
 import com.example.test.ui.theme.TextColor
 import com.example.test.ui.theme.WindowsColor
 
 @Composable
-fun IdeasScreen(viewModel: ParamVModel = viewModel(factory = ParamVModel.factory)) {
+fun IdeasScreen(vm: ParamVModel) {
+    Log.d("Idea Screen", vm.toString())
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -58,7 +59,7 @@ fun IdeasScreen(viewModel: ParamVModel = viewModel(factory = ParamVModel.factory
                 .verticalScroll(state = rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            IdeaCard(viewModel)
+            IdeaCard(vm)
 
         }
 
@@ -69,7 +70,8 @@ fun IdeasScreen(viewModel: ParamVModel = viewModel(factory = ParamVModel.factory
 
 @Composable
 fun IdeaCard(viewModel: ParamVModel) {
-    val tags = listOf(viewModel.typeIdea, viewModel.peopleIdea.toString(), viewModel.price)
+    val context = LocalContext.current
+    val tags = listOf(viewModel.typeIdea, viewModel.peopleIdea.toString(), viewModel.priceIdea)
     val name = viewModel.activityIdea
     Card(
         colors = CardDefaults.cardColors(containerColor = WindowsColor),
@@ -77,71 +79,82 @@ fun IdeaCard(viewModel: ParamVModel) {
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier
+        if (viewModel.isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier,
+                color = TextColor
+            )
+        } else {
+            Row(
+                modifier = Modifier
 //                        .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 40.dp),
-            horizontalArrangement = Arrangement.Start
-        ) {
-            tags.forEach { tag ->
-                Card(
-                    modifier = Modifier.padding(end = 16.dp),
-                    colors = CardDefaults.cardColors(containerColor = LightColor)
-                ) {
-                    Text(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp),
-                        text = tag,
-                        fontSize = 11.sp
-                    )
+                    .padding(horizontal = 24.dp, vertical = 40.dp),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                tags.forEach { tag ->
+                    Card(
+                        modifier = Modifier.padding(end = 16.dp),
+                        colors = CardDefaults.cardColors(containerColor = LightColor)
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp),
+                            text = tag,
+                            fontSize = 11.sp
+                        )
+                    }
                 }
             }
-        }
-//        Spacer(modifier = Modifier.height(30.dp))
-        Card(
-            modifier = Modifier
-                .padding(horizontal = 24.dp)
-                .align(Alignment.CenterHorizontally)
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(55.dp),
-            colors = CardDefaults.cardColors(containerColor = LightColor),
-        ) {
-            Text(
-                text = name,
-                fontSize = 16.sp,
-                modifier = Modifier
-                    .padding(vertical = 40.dp, horizontal = 32.dp)
 
-            )
-        }
-        Spacer(modifier = Modifier.height(40.dp))
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .padding(30.dp),
-            horizontalArrangement = Arrangement.SpaceBetween) {
-            IconButton(
-                onClick = {viewModel.generateIdeas()},
+
+//        Spacer(modifier = Modifier.height(30.dp))
+            Card(
                 modifier = Modifier
-                    .fillMaxHeight()
+                    .padding(horizontal = 24.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(55.dp),
+                colors = CardDefaults.cardColors(containerColor = LightColor),
             ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.heart_boarder),
-                    contentDescription = "Геолокация"
+                Text(
+                    text = name,
+                    fontSize = 16.sp,
+                    modifier = Modifier
+                        .padding(vertical = 40.dp, horizontal = 32.dp)
+
                 )
             }
-
-            IconButton(
-                onClick = {viewModel.saveGenerateIdeas()},
+            Spacer(modifier = Modifier.height(40.dp))
+            Row(
                 modifier = Modifier
-                    .fillMaxHeight()
+                    .fillMaxWidth()
+                    .padding(30.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                IconButton(
+                    onClick = { viewModel.saveGenerateIdeas(context) },
+                    modifier = Modifier
+                        .fillMaxHeight()
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.heart_boarder),
+                        contentDescription = "Геолокация"
+                    )
+                }
+
+                IconButton(
+                    onClick = { viewModel.generateIdeas(context, false) },
+                    modifier = Modifier
+                        .fillMaxHeight()
 //                        .width(60.dp)
 //                        .fillMaxHeight()
 //                        .weight(1f)
 //                        .align(Alignment.CenterVertically)
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.baseline_close_24),
-                    contentDescription = "Ok"
-                )
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_close_24),
+                        contentDescription = "Ok"
+                    )
+                }
             }
         }
     }

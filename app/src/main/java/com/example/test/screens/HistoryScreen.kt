@@ -20,19 +20,26 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.test.R
 import com.example.test.bottom_nav.Route
@@ -44,9 +51,15 @@ import com.example.test.ui.theme.WindowsColor
 
 @Composable
 fun HistoryScreen(
-    navHostController: NavHostController,
-    viewModel: HistoryVModel = viewModel(factory = HistoryVModel.factory)
+    vm: HistoryVModel,
+    navHostController: NavHostController
 ) {
+
+    LaunchedEffect(Unit) {
+        vm.getList()
+    }
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -67,18 +80,14 @@ fun HistoryScreen(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            val itemList = viewModel.getList()
-            for (i in itemList){
-                item { HistoryCard(viewModel, i) {navHostController.navigate(Route.MapScreen)} }
+            items(vm.historyList) { hisItem ->
+                HistoryCard(
+                    vm,
+                    hisItem,
+                    onMapIconClick = { navHostController.navigate(Route.MapScreen) },
+                    onNoteCompleted = { vm.updateItem(it) }
+                )
             }
-//            items(10)
-//            {
-//                HistoryCard(viewModel) {
-//                    navHostController.navigate(Route.MapScreen)
-//                }
-//            }
-
-
         }
 
 
@@ -86,16 +95,22 @@ fun HistoryScreen(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun HistoryCard(viewModel: HistoryVModel, item: HistoryEntity,
-    onMapIconClick: () -> Unit
+fun HistoryCard(
+    viewModel: HistoryVModel, item: HistoryEntity,
+    onMapIconClick: () -> Unit,
+    onNoteCompleted: (HistoryEntity) -> Unit
 ) {
     val name = viewModel.activity
     var place = viewModel.location
     var comment by remember {
-        mutableStateOf("How did it go?")
+        mutableStateOf(item.note)
     }
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
     Card(
         colors = CardDefaults.cardColors(containerColor = WindowsColor),
         shape = RoundedCornerShape(26.dp)
@@ -112,21 +127,35 @@ fun HistoryCard(viewModel: HistoryVModel, item: HistoryEntity,
                     .background(LightColor)
             ) {
                 Text(
-                    text = name, fontSize = 16.sp, modifier = Modifier
+                    text = item.activity, fontSize = 16.sp, modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 25.dp, vertical = 8.dp)
                 )
             }
 
             TextField(
-                value = comment,
-                onValueChange = { newText -> comment = newText },
+                placeholder = {
+                    Text(
+                        text = "How did it go?",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                value = comment ?: "",
+                onValueChange = { comment = it },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = WindowsColor,
                     unfocusedContainerColor = WindowsColor,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent
                 ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+                    item.note = comment
+                    onNoteCompleted(item)
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                }),
                 modifier = Modifier
                     .height(100.dp)
                     .fillMaxWidth()
@@ -157,7 +186,6 @@ fun HistoryCard(viewModel: HistoryVModel, item: HistoryEntity,
                     )
                 }
             }
-
 
 
         }

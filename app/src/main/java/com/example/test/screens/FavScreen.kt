@@ -18,13 +18,13 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,11 +34,11 @@ import com.example.test.ui.theme.LightColor
 import com.example.test.ui.theme.TextColor
 import com.example.test.ui.theme.WindowsColor
 import com.example.test.models.FavVModel
-import com.example.test.models.ParamVModel
 
 //@Preview(showBackground = true)
 @Composable
-fun FavScreen(viewModel: FavVModel = viewModel(factory = FavVModel.factory)) {
+fun FavScreen(vm: FavVModel = viewModel(factory = FavVModel.factory)) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -60,10 +60,10 @@ fun FavScreen(viewModel: FavVModel = viewModel(factory = FavVModel.factory)) {
 //                .verticalScroll(state = rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            val itemList = viewModel.getList()
-            for (i in itemList){
-                item { FavCard(i.type, i.participants, i.price, i.activity, viewModel, i) }
+            items(vm.favList) { favItem ->
+                FavCard(favItem) {
+                    vm.deleteItem(it)
+                }
             }
         }
 
@@ -72,8 +72,11 @@ fun FavScreen(viewModel: FavVModel = viewModel(factory = FavVModel.factory)) {
 }
 
 @Composable
-fun FavCard(type: String, people: String, price: String, name: String, viewModel: FavVModel, item: FavEntity) {
-    val tags = listOf(type, people, price)
+fun FavCard(
+    favItem: FavEntity,
+    onDelete: (FavEntity) -> Unit
+) {
+    val tags = listOf(favItem.type, favItem.participants, favItem.price)
 //    val longText = "This is a long text that exceeds the maximum allowed length"
     val maxLength = 60
     Card(
@@ -96,10 +99,10 @@ fun FavCard(type: String, people: String, price: String, name: String, viewModel
 //                    .padding(top = 24.dp, bottom = 16.dp)
             ) {
                 Text(
-                    text = if (name.length > maxLength) {
-                        "${name.take(maxLength)}..."
+                    text = if (favItem.activity.length > maxLength) {
+                        "${favItem.activity.take(maxLength)}..."
                     } else {
-                        name
+                        favItem.activity
                     },
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 16.sp,
@@ -131,7 +134,7 @@ fun FavCard(type: String, people: String, price: String, name: String, viewModel
                     .width(60.dp)
                     .background(LightColor)
                     .fillMaxHeight()
-                    .clickable { viewModel.deleteItem(item) },
+                    .clickable { onDelete(favItem) },
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize()

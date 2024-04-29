@@ -10,7 +10,7 @@ import androidx.room.RoomDatabase
         FavEntity::class,
         HistoryEntity::class
     ],
-    version = 2
+    version = 4
 )
 abstract class Db : RoomDatabase() {
     abstract val favDao: FavDao

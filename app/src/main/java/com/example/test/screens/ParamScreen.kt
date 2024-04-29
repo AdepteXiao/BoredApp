@@ -1,6 +1,7 @@
 package com.example.test.screens
 
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,7 +39,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.test.bottom_nav.Route
-import com.example.test.models.FavVModel
 import com.example.test.models.ParamVModel
 import com.example.test.ui.theme.LightColor
 import com.example.test.ui.theme.ScreenColor
@@ -47,9 +48,12 @@ import com.example.test.ui.theme.WindowsColor
 
 @Composable
 fun ParamScreen(
-    navHostController: NavHostController,
-    viewModel: ParamVModel = viewModel(factory = ParamVModel.factory)
+    vm: ParamVModel
 ) {
+    Log.d("Param Screen", vm.toString())
+    val context = LocalContext.current
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -74,34 +78,64 @@ fun ParamScreen(
                     .padding(vertical = 16.dp),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                RowParam("Type", arrayOf("any", "education", "recreational", "social", "diy", "charity", "cooking", "relaxation", "music", "busywork"), viewModel.type, viewModel::setSelectedType)
-                RowParam("People", arrayOf("any", "1", "2", "3 - 4", "5 - 6"), viewModel.people, viewModel::setSelectedPeople)
-                RowParam("Price", arrayOf("any", "free", "cheap", "normal", "expensive"), viewModel.price, viewModel::setSelectedPrice)
+                RowParam(
+                    text = "Type",
+                    choices =  arrayOf(
+                        "any",
+                        "education",
+                        "recreational",
+                        "social",
+                        "diy",
+                        "charity",
+                        "cooking",
+                        "relaxation",
+                        "music",
+                        "busywork"
+                    ),
+                    selected =  vm.type,
+                    onSelectedChanged =  vm::setSelectedType
+                )
+                RowParam(
+                    "People",
+                    arrayOf("any", "1", "2", "3 - 4", "5 - 6"),
+                    vm.people,
+                    vm::setSelectedPeople
+                )
+                RowParam(
+                    "Price",
+                    arrayOf("any", "free", "cheap", "normal", "expensive"),
+                    vm.price,
+                    vm::setSelectedPrice
+                )
             }
         }
         Button(
-            onClick = { viewModel.generateIdeas()
-                        navHostController.navigate(Route.IdeaScreen)},
+            onClick = {
+                vm.generateIdeas(context)
+            },
             modifier = Modifier.align(Alignment.CenterHorizontally),
             colors = ButtonDefaults.buttonColors(containerColor = LightColor),
             shape = RoundedCornerShape(15.dp),
             elevation = ButtonDefaults.buttonElevation(
                 defaultElevation = 4.dp,
                 pressedElevation = 2.dp,
-
-            )
+                )
         ) {
-            Text("Submit",
+            Text(
+                "Submit",
                 fontSize = 16.sp,
-                color = TextColor)
+                color = TextColor
+            )
         }
     }
 }
 
 
 @Composable
-fun RowParam(text: String, choices: Array<String>, selected: String,
-             onSelectedChanged: (String) -> Unit) {
+fun RowParam(
+    text: String, choices: Array<String>, selected: String,
+    onSelectedChanged: (String) -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -121,12 +155,12 @@ fun RowParam(text: String, choices: Array<String>, selected: String,
 }
 
 
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Demo_ExposedDropdownMenuBox(choices: Array<String>, selected: String,
-                                onSelectedChanged: (String) -> Unit) {
+fun Demo_ExposedDropdownMenuBox(
+    choices: Array<String>, selected: String,
+    onSelectedChanged: (String) -> Unit
+) {
 //    val context = LocalContext.current
     var expanded by remember { mutableStateOf(false) }
     var selectedText by remember { mutableStateOf(selected) }
