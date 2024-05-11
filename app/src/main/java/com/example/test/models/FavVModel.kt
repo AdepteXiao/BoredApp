@@ -30,11 +30,18 @@ class FavVModel(private val database: Db) : ViewModel() {
         }
     }
 
-    fun deleteItem(item: FavEntity) {
+    fun moveItem(item: FavEntity) {
         viewModelScope.launch {
             database.favDao.delete(item)
             val historyItem = item.toHistoryEntity()
             database.historyDao.insert(historyItem)
+            getList()
+        }
+    }
+
+    fun deleteItem(item: FavEntity){
+        viewModelScope.launch {
+            database.favDao.delete(item)
             getList()
         }
     }

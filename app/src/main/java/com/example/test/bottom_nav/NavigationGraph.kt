@@ -25,7 +25,7 @@ fun NavGraph(
     hisVm: HistoryVModel
 ) {
     NavHost(navController = navHostController,
-            startDestination = Route.HistoryScreen,
+            startDestination = Route.GenerateScreen,
             modifier = Modifier.padding(padding)){
         composable(Route.GenerateScreen){
             ParamScreen(paramVm)

@@ -24,7 +24,7 @@ data class HistoryEntity(
     val participants: String,
     val price: String,
     var note: String? = null,
-    val location: String? = null
+    var location: String? = null
 )
 
 fun FavEntity.toHistoryEntity(): HistoryEntity {

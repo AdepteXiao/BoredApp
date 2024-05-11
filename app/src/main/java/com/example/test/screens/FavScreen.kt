@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +20,15 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -27,9 +36,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.test.R
 import com.example.test.data.FavEntity
+import com.example.test.data.HistoryEntity
 import com.example.test.ui.theme.LightColor
 import com.example.test.ui.theme.TextColor
 import com.example.test.ui.theme.WindowsColor
@@ -39,6 +50,8 @@ import com.example.test.models.FavVModel
 @Composable
 fun FavScreen(vm: FavVModel = viewModel(factory = FavVModel.factory)) {
 
+    var selectedItem by remember { mutableStateOf<FavEntity?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -46,7 +59,7 @@ fun FavScreen(vm: FavVModel = viewModel(factory = FavVModel.factory)) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "ИЗБРАННОЕ",
+            text = "FAVOURITE",
             color = TextColor,
             textAlign = TextAlign.Center,
             fontSize = 20.sp,
@@ -58,30 +71,44 @@ fun FavScreen(vm: FavVModel = viewModel(factory = FavVModel.factory)) {
             modifier = Modifier
                 .fillMaxWidth(),
 //                .verticalScroll(state = rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+//            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(vm.favList) { favItem ->
-                FavCard(favItem) {
-                    vm.deleteItem(it)
-                }
+                FavCard(
+                    favItem,
+                    onMove = { vm.moveItem(it) },
+                    onCardClick = { selectedItem = it }
+                )
             }
         }
-
-
+        selectedItem?.let {
+            FavDialog(
+                onDismiss = { selectedItem = null },
+                onButtonClick = { vm.deleteItem(it)
+                    selectedItem = null },
+                it.activity
+            )
+        }
     }
+
+
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavCard(
     favItem: FavEntity,
-    onDelete: (FavEntity) -> Unit
+    onMove: (FavEntity) -> Unit,
+    onCardClick: (FavEntity) -> Unit
 ) {
     val tags = listOf(favItem.type, favItem.participants, favItem.price)
-//    val longText = "This is a long text that exceeds the maximum allowed length"
-    val maxLength = 60
+//    val maxLength = 55
     Card(
         colors = CardDefaults.cardColors(containerColor = WindowsColor),
-        shape = RoundedCornerShape(26.dp)
+        shape = RoundedCornerShape(26.dp),
+        modifier = Modifier.padding(bottom = 16.dp),
+        onClick = { onCardClick(favItem) }
     ) {
         Row(
             modifier = Modifier
@@ -99,11 +126,8 @@ fun FavCard(
 //                    .padding(top = 24.dp, bottom = 16.dp)
             ) {
                 Text(
-                    text = if (favItem.activity.length > maxLength) {
-                        "${favItem.activity.take(maxLength)}..."
-                    } else {
-                        favItem.activity
-                    },
+                    text = favItem.activity,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     fontSize = 16.sp,
                     modifier = Modifier.padding(top = 24.dp, bottom = 16.dp, end = 23.dp)
@@ -134,7 +158,7 @@ fun FavCard(
                     .width(60.dp)
                     .background(LightColor)
                     .fillMaxHeight()
-                    .clickable { onDelete(favItem) },
+                    .clickable { onMove(favItem) },
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize()
@@ -145,6 +169,40 @@ fun FavCard(
                         painter = painterResource(id = R.drawable.check),
                         contentDescription = "Choose"
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FavDialog(
+    onDismiss: () -> Unit,
+    onButtonClick: () -> Unit,
+    activity: String
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            modifier = Modifier
+                .padding(16.dp)
+                .width(300.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = activity)
+                Spacer(modifier = Modifier.height(16.dp))
+                Row {
+                    Button(
+                        onClick = {
+                            onButtonClick()
+                            onDismiss.invoke()
+                        }
+                    ) {
+                        Text("Удалить")
+                    }
                 }
             }
         }
